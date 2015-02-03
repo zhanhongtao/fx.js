@@ -1,18 +1,22 @@
-# 动画
+# 动画骨架
+
+## 使用代码
+demo 元素在 500ms 内, 向右移动 260px 距离.
 
 ```javascript
+var duration = 500; // 500ms
 var delta = 260;
 var dom = document.getElementById('demo');
-FX(200, function(x) {
-  dom.style.marginLeft = delta * x + 'px';
+FX(duration, function(percentage) {
+  dom.style.transform = 'translateX(' + delta * percentage + 'px)';
 });
 ```
 
-## 文档
+## API
 
-1. var fx = FX(duration, handle, step);
-2. fx.parse();
-3. fx.resume();
+* var fx = FX(duration, handler[, byStep]);
+* fx.play();
+* fx.pause( boolean );
+* fx.resume();
 
-## 其它
-
+update: 2015-02-3
