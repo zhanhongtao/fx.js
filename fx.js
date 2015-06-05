@@ -36,13 +36,13 @@
 
 function FX(duration, callback, useStep) {
   if ( !(this instanceof FX) ) return new FX(duration, callback, useStep);
-  this.duration = duration;
+  this.duration = this.remaining = duration;
   this.useStep = !!useStep;
   this.frames = Math.ceil(this.duration / 16);
   this.frame = 0;
   this.past = 0;
-  this.callback = function( per ) {
-    callback(per);
+  this.callback = function( per, t, d ) {
+    callback(per, t, d);
     if (per == 1) {
       this.past = 0;
       this.frame = 0;
@@ -52,21 +52,25 @@ function FX(duration, callback, useStep) {
     }
     return this;
   };
-  this._time = +new Date;
   this.play();
 }
 
 function frame() {
+  var per;
   if ( this.useStep ) {
     per = Math.min(1, ++this.frame / this.frames);
+    this.callback( per );
   } else {
-    per = Math.min(1, (+new Date - this._time + this.past) / this.duration);
+    this.remaining -= +new Date - this.starttime; 
+    this.remaining = Math.max(0, this.remaining);
+    per = (this.remaining / this.duration) || 0;
+    this.callback( 1 - per, this.duration - this.remaining, this.duration );
   }
-  this.callback( per );
 }
 
 FX.prototype.play = function() {
   var context = this;
+  this.starttime = +new Date;
   this.timer = requestAnimationFrame(function() {
     frame.call(context);
   });
@@ -77,13 +81,12 @@ FX.prototype.pause = function(toEnd) {
   if (this.timer) {
     cancelAnimationFrame(this.timer);
     if (toEnd) return this.callback(1);
-    this.past += +new Date - this._time;
+    this.remaining = this.remaining - (+new Date - this.starttime);
   }
   return this;
 };
 
 FX.prototype.resume = function() {
-  this._time = +new Date;
   return this.play();
 };
 
